@@ -3,24 +3,65 @@
 <head>
 <meta charset="UTF-8">
 <title>Admin</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f8fafc;
+        color: #1f2937;
+    }
+    .container {
+        max-width: 1000px;
+        margin: 40px auto;
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    input {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        box-sizing: border-box;
+    }
+    button {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 10px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: 16px;
+    }
+    button:hover { background: #b91c1c; }
+    ul { padding-left: 20px; }
+    li { margin-bottom: 10px; }
+    .actions { display: inline-block; margin-left: 8px; }
+</style>
 </head>
 <body>
+<div class="container">
+    <div class="topbar">
+        <h1>Admin 👨‍💼</h1>
+        <button onclick="logout()">Sair</button>
+    </div>
 
-<h1>Admin 👨‍💼</h1>
+    <h2>Cadastrar Aluno</h2>
 
-<button onclick="logout()">Sair</button>
+    <input id="nome" placeholder="Nome">
+    <input id="sobrenome" placeholder="Sobrenome">
+    <input id="email" placeholder="Email">
+    <input id="senha" placeholder="Senha">
 
-<h2>Cadastrar Aluno</h2>
+    <button onclick="criarAluno()">Criar</button>
 
-<input id="nome" placeholder="Nome">
-<input id="sobrenome" placeholder="Sobrenome">
-<input id="email" placeholder="Email">
-<input id="senha" placeholder="Senha">
-
-<button onclick="criarAluno()">Criar</button>
-
-<h2>Lista de Alunos</h2>
-<ul id="listaAlunos"></ul>
+    <h2>Lista de Alunos</h2>
+    <ul id="listaAlunos"></ul>
+</div>
 
 <script>
 const API_BASE_URL = window.API_BASE_URL || "https://ocorrencia-corrigido1.onrender.com";

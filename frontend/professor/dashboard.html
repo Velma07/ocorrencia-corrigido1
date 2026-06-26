@@ -3,22 +3,62 @@
 <head>
 <meta charset="UTF-8">
 <title>Professor</title>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f8fafc;
+        color: #1f2937;
+    }
+    .container {
+        max-width: 900px;
+        margin: 40px auto;
+        background: white;
+        padding: 24px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .topbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    input {
+        display: block;
+        width: 100%;
+        padding: 10px;
+        margin-bottom: 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        box-sizing: border-box;
+    }
+    button {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px 14px;
+        border-radius: 8px;
+        cursor: pointer;
+        margin-bottom: 16px;
+    }
+    button:hover { background: #1d4ed8; }
+    ul { padding-left: 20px; }
+    li { margin-bottom: 8px; }
+</style>
 </head>
 <body>
+<div class="container">
+    <div class="topbar">
+        <h1>Professor 👨‍🏫</h1>
+        <button onclick="logout()">Sair</button>
+    </div>
 
-<h1>Professor 👨‍🏫</h1>
+    <h2>Nova Ocorrência</h2>
 
-<button onclick="logout()">Sair</button>
+    <input id="descricao" placeholder="Descrição">
+    <input id="id_aluno" placeholder="ID do aluno">
 
-<h2>Nova Ocorrência</h2>
+    <button onclick="criar()">Registrar</button>
 
-<input id="descricao" placeholder="Descrição">
-<input id="id_aluno" placeholder="ID do aluno">
-
-<button onclick="criar()">Registrar</button>
-
-<h2>Ocorrências</h2>
-<ul id="lista"></ul>
+    <h2>Ocorrências</h2>
+    <ul id="lista"></ul>
+</div>
 
 <script>
 const API_BASE_URL = window.API_BASE_URL || "https://ocorrencia-corrigido1.onrender.com";
