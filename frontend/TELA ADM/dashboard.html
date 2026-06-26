@@ -3,24 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <title>Admin</title>
+<style>*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+}
+
+body{
+    min-height:100vh;
+    background:linear-gradient(135deg,#064e3b,#10b981);
+    padding:40px;
+    overflow-x:hidden;
+    position:relative;
+}
+
+body::before{
+    content:"";
+    position:fixed;
+    width:600px;
+    height:600px;
+    background:rgba(255,255,255,.08);
+    border-radius:50%;
+    top:-120px;
+    left:-120px;
+    z-index:0;
+}
+
+body::after{
+    content:"";
+    position:fixed;
+    width:500px;
+    height:500px;
+    background:rgba(255,255,255,.05);
+    border-radius:50%;
+    bottom:-150px;
+    right:-150px;
+    z-index:0;
+}
+
+.dashboard{
+    position:relative;
+    z-index:1;
+    max-width:1200px;
+    margin:auto;
+    background:rgba(255,255,255,.95);
+    backdrop-filter:blur(10px);
+    border-radius:20px;
+    padding:40px;
+    box-shadow:0 20px 40px rgba(0,0,0,.25);
+    animation:fadeIn .6s ease;
+}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}
+
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:35px;flex-wrap:wrap;gap:20px;}
+.header h1{color:#065f46;font-size:32px;}
+
+.logout{background:#ef4444;color:white;border:none;padding:12px 24px;border-radius:10px;cursor:pointer;font-weight:bold;transition:.3s;}
+.logout:hover{transform:translateY(-2px);background:#dc2626;}
+
+.card{background:#f8fafc;border-radius:16px;padding:25px;margin-bottom:30px;box-shadow:0 10px 20px rgba(0,0,0,.08);}
+.card h2{color:#047857;margin-bottom:20px;}
+
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:15px;}
+input{width:100%;padding:14px;border:1px solid #d1d5db;border-radius:10px;outline:none;transition:.3s;font-size:15px;}
+input:focus{border-color:#10b981;box-shadow:0 0 0 4px rgba(16,185,129,.15);} 
+.btn{margin-top:20px;background:linear-gradient(135deg,#047857,#16a34a);color:white;border:none;padding:14px 28px;border-radius:10px;cursor:pointer;font-size:15px;font-weight:bold;transition:.3s;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(4,120,87,.35);} 
+ul{list-style:none;} li{background:white;padding:18px;border-radius:12px;margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 4px 12px rgba(0,0,0,.08);} li button{background:#ef4444;color:white;border:none;padding:8px 15px;border-radius:8px;cursor:pointer;transition:.3s;} li button:hover{background:#dc2626;}
+@media(max-width:768px){body{padding:20px;} .dashboard{padding:25px;} .header{flex-direction:column;align-items:flex-start;} li{flex-direction:column;align-items:flex-start;gap:15px;} li button{width:100%;}}</style>
 </head>
 <body>
+<div class="dashboard">
+    <div class="header">
+        <h1>Admin 👨‍💼</h1>
+        <button class="logout" onclick="logout()">Sair</button>
+    </div>
 
-<h1>Admin 👨‍💼</h1>
+    <div class="card">
+        <h2>Cadastrar Aluno</h2>
+        <div class="form-grid">
+            <input id="nome" placeholder="Nome">
+            <input id="sobrenome" placeholder="Sobrenome">
+            <input id="email" placeholder="Email">
+            <input id="senha" placeholder="Senha">
+        </div>
+        <button class="btn" onclick="criarAluno()">Criar</button>
+    </div>
 
-<button onclick="logout()">Sair</button>
-
-<h2>Cadastrar Aluno</h2>
-
-<input id="nome" placeholder="Nome">
-<input id="sobrenome" placeholder="Sobrenome">
-<input id="email" placeholder="Email">
-<input id="senha" placeholder="Senha">
-
-<button onclick="criarAluno()">Criar</button>
-
-<h2>Lista de Alunos</h2>
-<ul id="listaAlunos"></ul>
+    <div class="card">
+        <h2>Lista de Alunos</h2>
+        <ul id="listaAlunos"></ul>
+    </div>
+</div>
 
 <script>
 const API_BASE_URL = window.API_BASE_URL || "https://ocorrencia-corrigido1.onrender.com";

@@ -205,20 +205,26 @@ li button:hover{
 }</style>
 </head>
 <body>
+<div class="dashboard">
+    <div class="header">
+        <h1>Professor 👨‍🏫</h1>
+        <button class="logout" onclick="logout()">Sair</button>
+    </div>
 
-<h1>Professor 👨‍🏫</h1>
+    <div class="card">
+        <h2>Nova Ocorrência</h2>
+        <div class="form-grid">
+            <input id="descricao" placeholder="Descrição">
+            <input id="id_aluno" placeholder="ID do aluno">
+        </div>
+        <button class="btn" onclick="criar()">Registrar</button>
+    </div>
 
-<button onclick="logout()">Sair</button>
-
-<h2>Nova Ocorrência</h2>
-
-<input id="descricao" placeholder="Descrição">
-<input id="id_aluno" placeholder="ID do aluno">
-
-<button onclick="criar()">Registrar</button>
-
-<h2>Ocorrências</h2>
-<ul id="lista"></ul>
+    <div class="card">
+        <h2>Ocorrências</h2>
+        <ul id="lista"></ul>
+    </div>
+</div>
 
 <script>
 const API_BASE_URL = window.API_BASE_URL || "https://ocorrencia-corrigido1.onrender.com";
