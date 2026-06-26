@@ -7,21 +7,42 @@ exports.listar = (req, res) => {
     });
 };
 
-exports.criar = (req, res) => {
+exports.criar = async (req, res) => {
     const { nome, sobrenome, email, senha, id_turma } = req.body;
 
     if (!nome || !sobrenome || !email || !senha) {
         return res.status(400).json({ erro: "Campos obrigatórios: nome, sobrenome, email, senha" });
     }
 
-    db.query(
-        "INSERT INTO aluno (nome, sobrenome, email, senha, id_turma) VALUES (?, ?, ?, ?, ?)",
-        [nome, sobrenome, email, senha, id_turma || 1],
-        (err) => {
-            if (err) return res.status(500).json(err);
-            res.json({ mensagem: "Aluno criado com sucesso!" });
+    try {
+        let turmaId = id_turma || null;
+
+        if (turmaId) {
+            const turmaExiste = await db.query("SELECT id FROM turmas WHERE id = $1", [turmaId]);
+            if (turmaExiste.length === 0) {
+                turmaId = null;
+            }
         }
-    );
+
+        if (!turmaId) {
+            const turmaPadrao = await db.query("SELECT id FROM turmas ORDER BY id LIMIT 1");
+            if (turmaPadrao.length === 0) {
+                const novaTurma = await db.query("INSERT INTO turmas (nome) VALUES ($1) RETURNING id", ["Turma Padrão"]);
+                turmaId = novaTurma[0].id;
+            } else {
+                turmaId = turmaPadrao[0].id;
+            }
+        }
+
+        await db.query(
+            "INSERT INTO aluno (nome, sobrenome, email, senha, id_turma) VALUES ($1, $2, $3, $4, $5)",
+            [nome, sobrenome, email, senha, turmaId]
+        );
+
+        res.json({ mensagem: "Aluno criado com sucesso!" });
+    } catch (err) {
+        res.status(500).json({ erro: "Erro ao criar aluno", detalhes: err.message });
+    }
 };
 
 exports.atualizar = (req, res) => {
