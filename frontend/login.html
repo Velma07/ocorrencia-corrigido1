@@ -86,7 +86,7 @@ function login() {
             localStorage.setItem("nome", data.usuario.nome);
 
             if (data.usuario.tipo === "admin") {
-                window.location.href = "TELA ADM/dashboard.html";
+                window.location.href = "TELA ADM/alunos.html";
             } else if (data.usuario.tipo === "professor") {
                 window.location.href = "professor/dashboard.html";
             } else {
