@@ -2,8 +2,8 @@
   "version": 2,
 
   "routes": [
-    { "src": "/", "dest": "/frontend/index.html" },
-    { "src": "/(.*\\.(js|css|png|jpg|jpeg|svg|ico|html))$", "dest": "/frontend/$1" },
-    { "src": "/(auth|alunos|professores|turmas|disciplinas|ocorrencias|usuarios)(.*)", "dest": "/api/index.js" }
+    { "src": "^/$", "dest": "/frontend/index.html" },
+    { "src": "^/(.*\.(js|css|png|jpg|jpeg|svg|ico|html))$", "dest": "/frontend/$1" },
+    { "src": "^/(auth|alunos|professores|turmas|disciplinas|ocorrencias|usuarios)(.*)", "dest": "/api/index.js" }
   ]
 }
