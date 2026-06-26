@@ -14,6 +14,12 @@
 <ul id="lista"></ul>
 
 <script>
+const API_BASE_URL = window.API_BASE_URL || "https://ocorrencia-corrigido1.onrender.com";
+
+function apiUrl(path) {
+    return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 const token = localStorage.getItem("token");
 const userId = localStorage.getItem("userId");
 const nome = localStorage.getItem("nome");
@@ -24,8 +30,8 @@ if (!token) {
 
 function carregar() {
     const url = userId
-        ? `/ocorrencias/aluno/${userId}`
-        : "/ocorrencias";
+        ? apiUrl(`/ocorrencias/aluno/${userId}`)
+        : apiUrl("/ocorrencias");
 
     fetch(url, {
         headers: { Authorization: token }

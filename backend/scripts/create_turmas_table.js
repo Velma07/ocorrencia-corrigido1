@@ -2,7 +2,7 @@ const db = require("../config/db");
 
 const sql = `
   CREATE TABLE IF NOT EXISTS turmas (
-    id INT PRIMARY KEY AUTO_INCREMENT,
+    id SERIAL PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   )

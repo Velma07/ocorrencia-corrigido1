@@ -60,11 +60,17 @@ button:hover {
 </div>
 
 <script>
+const API_BASE_URL = window.API_BASE_URL || "https://ocorrencia-corrigido1.onrender.com";
+
+function apiUrl(path) {
+    return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 function login() {
     const email = document.getElementById("email").value;
     const senha = document.getElementById("senha").value;
 
-    fetch("/auth/login", {
+    fetch(apiUrl("/auth/login"), {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

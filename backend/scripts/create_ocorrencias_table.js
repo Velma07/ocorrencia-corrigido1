@@ -2,14 +2,14 @@ const db = require("../config/db");
 
 const sql = `
     CREATE TABLE IF NOT EXISTS ocorrencias (
-        id INT AUTO_INCREMENT PRIMARY KEY,
+        id SERIAL PRIMARY KEY,
         descricao TEXT NOT NULL,
         aluno_id INT NOT NULL,
         professor_id INT NOT NULL,
-        data_ocorrencia DATETIME DEFAULT CURRENT_TIMESTAMP,
+        data_ocorrencia TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         criada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY (aluno_id) REFERENCES aluno(id) ON DELETE CASCADE,
-        FOREIGN KEY (professor_id) REFERENCES professor(id) ON DELETE CASCADE
+        CONSTRAINT fk_ocorrencia_aluno FOREIGN KEY (aluno_id) REFERENCES aluno(id) ON DELETE CASCADE,
+        CONSTRAINT fk_ocorrencia_professor FOREIGN KEY (professor_id) REFERENCES professor(id) ON DELETE CASCADE
     )
 `;
 

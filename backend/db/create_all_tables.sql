@@ -1,0 +1,65 @@
+-- SQL script to create all tables required by the project
+-- Run this on PostgreSQL/Neon
+
+DROP TABLE IF EXISTS ocorrencias;
+DROP TABLE IF EXISTS aluno;
+DROP TABLE IF EXISTS professor;
+DROP TABLE IF EXISTS disciplina;
+DROP TABLE IF EXISTS turmas;
+DROP TABLE IF EXISTS usuarios;
+
+CREATE TABLE IF NOT EXISTS usuarios (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  senha VARCHAR(255) NOT NULL,
+  tipo VARCHAR(20) NOT NULL DEFAULT 'aluno' CHECK (tipo IN ('admin','professor','aluno')),
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS turmas (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(100) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS disciplina (
+  id SERIAL PRIMARY KEY,
+  descricao VARCHAR(255) NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS professor (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(255) NOT NULL,
+  sobrenome VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  senha VARCHAR(255) NOT NULL,
+  id_disciplina INT DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_professor_disciplina FOREIGN KEY (id_disciplina) REFERENCES disciplina(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS aluno (
+  id SERIAL PRIMARY KEY,
+  nome VARCHAR(255) NOT NULL,
+  sobrenome VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  senha VARCHAR(255) NOT NULL,
+  id_turma INT DEFAULT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_aluno_turma FOREIGN KEY (id_turma) REFERENCES turmas(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS ocorrencias (
+  id SERIAL PRIMARY KEY,
+  descricao TEXT NOT NULL,
+  aluno_id INT NOT NULL,
+  professor_id INT NOT NULL,
+  data_ocorrencia TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  criada_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_ocorrencia_aluno FOREIGN KEY (aluno_id) REFERENCES aluno(id) ON DELETE CASCADE,
+  CONSTRAINT fk_ocorrencia_professor FOREIGN KEY (professor_id) REFERENCES professor(id) ON DELETE CASCADE
+);
+
+-- End of script

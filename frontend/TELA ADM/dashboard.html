@@ -23,6 +23,12 @@
 <ul id="listaAlunos"></ul>
 
 <script>
+const API_BASE_URL = window.API_BASE_URL || "https://ocorrencia-corrigido1.onrender.com";
+
+function apiUrl(path) {
+    return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
 const token = localStorage.getItem("token");
 const nome = localStorage.getItem("nome");
 
@@ -31,7 +37,7 @@ if (!token) {
 }
 
 function carregarAlunos() {
-    fetch("/alunos", {
+    fetch(apiUrl("/alunos"), {
         headers: { Authorization: token }
     })
     .then(res => res.json())
@@ -64,7 +70,7 @@ function criarAluno() {
     const emailInput = document.getElementById("email").value;
     const senhaInput = document.getElementById("senha").value;
 
-    fetch("/alunos", {
+    fetch(apiUrl("/alunos"), {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -97,7 +103,7 @@ function criarAluno() {
 }
 
 function deletar(id) {
-    fetch(`/alunos/${id}`, {
+    fetch(apiUrl(`/alunos/${id}`), {
         method: "DELETE",
         headers: { Authorization: token }
     })
