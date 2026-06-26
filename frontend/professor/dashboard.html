@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Professor</title>
+</head>
+<body>
+
+<h1>Professor 👨‍🏫</h1>
+
+<button onclick="logout()">Sair</button>
+
+<h2>Nova Ocorrência</h2>
+
+<input id="descricao" placeholder="Descrição">
+<input id="id_aluno" placeholder="ID do aluno">
+
+<button onclick="criar()">Registrar</button>
+
+<h2>Ocorrências</h2>
+<ul id="lista"></ul>
+
+<script>
+const token = localStorage.getItem("token");
+const nome = localStorage.getItem("nome");
+
+if (!token) {
+    window.location.href = "../login.html";
+}
+
+function carregar() {
+    fetch("/ocorrencias", {
+        headers: { Authorization: token }
+    })
+    .then(res => res.json())
+    .then(data => {
+        const lista = document.getElementById("lista");
+        lista.innerHTML = "";
+
+        if (!Array.isArray(data)) {
+            lista.innerHTML = `<li>Erro: ${data.erro || 'Falha ao carregar ocorrências'}</li>`;
+            return;
+        }
+
+        data.forEach(o => {
+            const li = document.createElement("li");
+            li.innerText = `${o.id} - ${o.descricao}`;
+            lista.appendChild(li);
+        });
+    })
+    .catch(() => {
+        document.getElementById("lista").innerHTML = '<li>Erro ao conectar com o servidor.</li>';
+    });
+}
+
+function criar() {
+    const descricao = document.getElementById("descricao").value;
+    const idAluno = document.getElementById("id_aluno").value;
+
+    fetch("/ocorrencias", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: token
+        },
+        body: JSON.stringify({
+            descricao,
+            id_aluno: idAluno,
+            id_professor: localStorage.getItem("userId")
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.erro) {
+            alert(data.erro);
+            return;
+        }
+        document.getElementById("descricao").value = "";
+        document.getElementById("id_aluno").value = "";
+        carregar();
+    })
+    .catch(() => {
+        alert("Erro ao criar ocorrência.");
+    });
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = "../login.html";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (nome) {
+        const title = document.querySelector("h1");
+        if (title) title.innerText = `Professor 👨‍🏫 - ${nome}`;
+    }
+    carregar();
+});
+</script>
+
+</body>
+</html>

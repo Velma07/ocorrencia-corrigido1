@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>ADM - SISTEMA | Disciplinas</title>
+    
+    <link rel="icon" type="image/png" href="../assets/icon.png">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1b4332;
+            --accent: #2d6a4f;
+            --success: #52b788;
+            --danger: #e63946;
+            --highlight: #ffff00;
+            --bg: #f0f2f1;
+            --text: #2d3436;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
+
+        .wrapper { display: flex; min-height: 100vh; }
+
+        /* Sidebar - Design Padronizado com Flexbox */
+        .sidebar { 
+            width: 280px; 
+            background: var(--primary); 
+            color: white; 
+            padding: 25px; 
+            position: fixed; 
+            height: 100%; 
+            z-index: 100; 
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar h2 { font-size: 1.4rem; margin-bottom: 30px; text-align: center; color: var(--success); border-bottom: 1px solid var(--accent); padding-bottom: 15px; }
+        
+        .sidebar nav { 
+            display: flex; 
+            flex-direction: column; 
+            height: calc(100% - 70px); 
+            width: 100%;
+        }
+        .sidebar nav a { color: #b7e4c7; text-decoration: none; padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; transition: 0.3s; }
+        .sidebar nav a:hover, .sidebar nav a.active { background: var(--success); color: white; }
+
+        /* Botão Sair na parte inferior */
+        .sidebar .btn-sair {
+            margin-top: auto; 
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-weight: bold;
+        }
+        .sidebar .btn-sair i { color: #ff7675; }
+        .sidebar .btn-sair:hover { background: var(--danger); color: white; }
+        .sidebar .btn-sair:hover i { color: white; }
+
+        /* Main Content */
+        .main-content { flex: 1; margin-left: 280px; padding: 40px; }
+        
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+
+        /* Botão Adicionar */
+        .btn-trigger { background: var(--success); color: white; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; display: flex; align-items: center; gap: 10px; transition: 0.3s; }
+        .btn-trigger:hover { background: var(--accent); transform: scale(1.05); }
+
+        /* Barra de Pesquisa */
+        .search-container { position: relative; width: 300px; }
+        .search-container input { width: 100%; padding: 10px 40px 10px 15px; border-radius: 20px; border: 1px solid #ddd; outline: none; }
+        .search-container i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #888; }
+
+        /* Tabela */
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 600px; }
+        th { text-align: left; padding: 15px; background: #f8f9fa; color: var(--primary); font-size: 0.85rem; }
+        td { padding: 15px; border-bottom: 1px solid #eee; font-size: 0.95rem; }
+        .mark-highlight { background-color: var(--highlight); font-weight: bold; padding: 2px; }
+        tr.hidden { display: none; }
+        
+        .actions-cell { display: flex; gap: 15px; }
+        .btn-edit { color: #f39c12; cursor: pointer; }
+        .btn-delete { color: var(--danger); cursor: pointer; }
+
+        /* MODAIS */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal-card { background: white; width: 500px; padding: 30px; border-radius: 15px; position: relative; max-height: 90vh; overflow-y: auto; animation: modalAnim 0.3s ease-out; }
+        
+        @keyframes modalAnim { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+        .modal-card h2 { margin-bottom: 20px; color: var(--primary); }
+        .form-group { margin-bottom: 15px; display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 0.85rem; font-weight: bold; color: var(--accent); }
+        .form-group input { padding: 10px; border: 1px solid #ddd; border-radius: 6px; outline: none; background: white; text-transform: uppercase; }
+        
+        .form-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-save { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; flex: 1; font-weight: bold; }
+        .btn-cancel { background: #eee; border: none; padding: 12px; border-radius: 6px; cursor: pointer; flex: 1; }
+        .btn-danger-confirm { background: var(--danger); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; flex: 1; font-weight: bold; }
+
+        /* TOAST */
+        #toast {
+            position: fixed; top: 30px; right: 30px; background: white; padding: 15px 25px; border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1); border-left: 5px solid var(--success);
+            display: none; align-items: center; gap: 15px; z-index: 2000; animation: toastIn 0.5s ease;
+        }
+        #toast.delete { border-left-color: var(--danger); }
+        @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <div id="toast">
+        <div id="toastIcon" style="font-size: 1.2rem; color: var(--success);"><i class="fas fa-check"></i></div>
+        <div>
+            <strong id="toastTitle">Sucesso!</strong>
+            <p id="toastMsg" style="font-size: 0.85rem; color: #666;"></p>
+        </div>
+    </div>
+
+    <div class="wrapper">
+        <aside class="sidebar">
+            <h2>ADMIN</h2>
+            <nav>
+                <a href="alunos.html"><i class="fas fa-user-graduate"></i> Alunos</a>
+                <a href="ocorrencias.html"><i class="fas fa-exclamation-triangle"></i> Ocorrências</a>
+                <a href="turmas.html"><i class="fas fa-users"></i> Turmas</a>
+                <a href="disciplinas.html" class="active"><i class="fas fa-book-open"></i> Disciplinas</a>
+                <a href="professores.html"><i class="fas fa-chalkboard-teacher"></i> Professores</a>
+                
+                <a href="../index.html" class="btn-sair"><i class="fas fa-sign-out-alt"></i> Sair</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="header-actions">
+                <h1>Gerenciar Disciplinas</h1>
+                <button class="btn-trigger" onclick="abrirModalCadastro()">
+                    <i class="fas fa-plus"></i> Nova Disciplina
+                </button>
+            </div>
+            
+            <div class="search-container" style="margin-bottom: 20px;">
+                <input type="text" id="inputBusca" placeholder="Pesquisar por disciplina..." onkeyup="filtrarTabela()">
+                <i class="fas fa-search"></i>
+            </div>
+
+            <div class="card">
+                <table id="tabelaDisciplinas">
+                    <thead>
+                        <tr>
+                            <th style="width: 200px;">ID</th>
+                            <th>Descrição</th>
+                            <th style="width: 100px;">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpoTabela">
+                        </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="modalDisciplina">
+        <div class="modal-card">
+            <h2 id="modalTitle">Cadastrar Disciplina</h2>
+            <form id="formDisciplina">
+                
+                <div class="form-group">
+                    <label>Descrição da Disciplina</label>
+                    <input type="text" id="txtDescricao" required>
+                </div>
+
+                <div class="form-buttons">
+                    <button type="button" class="btn-cancel" onclick="fecharModais()">Cancelar</button>
+                    <button type="submit" class="btn-save">Cadastrar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalDelete">
+        <div class="modal-card" style="width: 400px; text-align: center;">
+            <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: var(--danger); margin-bottom: 15px;"></i>
+            <h2>Tem certeza?</h2>
+            <p style="color: #666; margin-bottom: 20px;">Você não poderá reverter esta ação!</p>
+            <div class="form-buttons">
+                <button class="btn-cancel" onclick="fecharModais()">Cancelar</button>
+                <button class="btn-danger-confirm" id="btnConfirmDelete">Sim, Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const modalCad = document.getElementById('modalDisciplina');
+        const modalDel = document.getElementById('modalDelete');
+        const form = document.getElementById('formDisciplina');
+        const tabela = document.getElementById('corpoTabela');
+        const toast = document.getElementById('toast');
+
+        let linhaParaAcao = null;
+        let proximoId = 1;
+
+        function abrirModalCadastro() {
+            document.getElementById('modalTitle').innerText = "Cadastrar Disciplina";
+            linhaParaAcao = null;
+            modalCad.style.display = 'flex';
+        }
+
+        function fecharModais() {
+            modalCad.style.display = 'none';
+            modalDel.style.display = 'none';
+            form.reset();
+        }
+
+        function abrirConfirmacao(btn) {
+            linhaParaAcao = btn.closest('tr');
+            modalDel.style.display = 'flex';
+        }
+
+        function mostrarToast(titulo, msg, tipo = 'success') {
+            toast.className = tipo === 'success' ? '' : 'delete';
+            document.getElementById('toastIcon').innerHTML = tipo === 'success' ? '<i class="fas fa-check"></i>' : '<i class="fas fa-trash"></i>';
+            document.getElementById('toastTitle').innerText = titulo;
+            document.getElementById('toastMsg').innerText = msg;
+            toast.style.display = 'flex';
+            setTimeout(() => { toast.style.display = 'none'; }, 3000);
+        }
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const descricao = document.getElementById('txtDescricao').value.toUpperCase().trim();
+
+            if (linhaParaAcao) {
+                const tdDesc = linhaParaAcao.querySelector('.nome-disciplina');
+                tdDesc.removeAttribute('data-orig');
+                tdDesc.innerText = descricao;
+                
+                mostrarToast("Atualizado!", "Disciplina alterada com sucesso.");
+            } else {
+                const novaLinha = document.createElement('tr');
+                novaLinha.innerHTML = `
+                    <td class="id-disciplina">${proximoId++}</td>
+                    <td class="nome-disciplina">${descricao}</td>
+                    <td class="actions-cell">
+                        <i class="fas fa-edit btn-edit" onclick="editarLinha(this)"></i>
+                        <i class="fas fa-trash btn-delete" onclick="abrirConfirmacao(this)"></i>
+                    </td>
+                `;
+                tabela.appendChild(novaLinha);
+                mostrarToast("Registrado!", "Nova disciplina salva.");
+            }
+            fecharModais();
+            filtrarTabela();
+        });
+
+        function editarLinha(btn) {
+            linhaParaAcao = btn.closest('tr');
+            
+            const descricao = linhaParaAcao.querySelector('.nome-disciplina').getAttribute('data-orig') || linhaParaAcao.querySelector('.nome-disciplina').innerText;
+
+            document.getElementById('txtDescricao').value = descricao;
+
+            document.getElementById('modalTitle').innerText = "Editar Disciplina";
+            modalCad.style.display = 'flex';
+        }
+
+        document.getElementById('btnConfirmDelete').onclick = function() {
+            if (linhaParaAcao) {
+                linhaParaAcao.remove();
+                fecharModais();
+                mostrarToast("Excluído!", "O registro foi removido do sistema.", "error");
+            }
+        };
+
+        function filtrarTabela() {
+            const filter = document.getElementById('inputBusca').value.toLowerCase();
+            const tr = document.querySelectorAll('#tabelaDisciplinas tbody tr');
+            
+            tr.forEach(linha => {
+                const td = linha.querySelector('.nome-disciplina');
+                if(!td) return;
+                
+                const textoOriginal = td.getAttribute('data-orig') || td.textContent;
+                if (!td.getAttribute('data-orig')) td.setAttribute('data-orig', textoOriginal);
+
+                if (textoOriginal.toLowerCase().includes(filter)) {
+                    linha.classList.remove('hidden');
+                    if(filter !== "") {
+                        const regex = new RegExp(`(${filter})`, 'gi');
+                        td.innerHTML = textoOriginal.replace(regex, '<span class="mark-highlight">$1</span>');
+                    } else { 
+                        td.innerHTML = textoOriginal; 
+                    }
+                } else { 
+                    linha.classList.add('hidden'); 
+                }
+            });
+        }
+    </script>
+</body>
+</html>

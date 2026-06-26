@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>PROFESSOR - SISTEMA | Turmas</title>
+    
+    <link rel="icon" type="image/png" href="../assets/icon.png">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1b4332;
+            --accent: #2d6a4f;
+            --success: #52b788;
+            --danger: #e63946;
+            --highlight: #ffff00;
+            --bg: #f0f2f1;
+            --text: #2d3436;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { background-color: var(--bg); color: var(--text); overflow-x: hidden; }
+
+        .wrapper { display: flex; min-height: 100vh; }
+
+        /* Sidebar */
+        .sidebar { 
+            width: 280px; 
+            background: var(--primary); 
+            color: white; 
+            padding: 25px; 
+            position: fixed; 
+            height: 100%; 
+            z-index: 100; 
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar h2 { font-size: 1.4rem; margin-bottom: 30px; text-align: center; color: var(--success); border-bottom: 1px solid var(--accent); padding-bottom: 15px; }
+        
+        .sidebar nav { 
+            display: flex; 
+            flex-direction: column; 
+            height: calc(100% - 70px); 
+            width: 100%;
+        }
+        .sidebar nav a { color: #b7e4c7; text-decoration: none; padding: 12px 15px; border-radius: 8px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; transition: 0.3s; }
+        .sidebar nav a:hover, .sidebar nav a.active { background: var(--success); color: white; }
+
+        .sidebar .btn-sair {
+            margin-top: auto; 
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            font-weight: bold;
+        }
+        .sidebar .btn-sair i { color: #ff7675; }
+        .sidebar .btn-sair:hover { background: var(--danger); color: white; }
+        .sidebar .btn-sair:hover i { color: white; }
+
+        /* Main Content */
+        .main-content { flex: 1; margin-left: 280px; padding: 40px; }
+        
+        .header-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+
+        /* Barra de Pesquisa */
+        .search-container { position: relative; width: 320px; margin-bottom: 25px; }
+        .search-container input { width: 100%; padding: 12px 40px 12px 15px; border-radius: 25px; border: 1px solid #ccc; outline: none; transition: 0.3s; font-size: 0.9rem; }
+        .search-container input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(45, 106, 79, 0.15); }
+        .search-container i { position: absolute; right: 15px; top: 50%; transform: translateY(-50%); color: #888; }
+        .search-container input:disabled { background-color: #e9ecef; cursor: not-allowed; border-color: #ddd; }
+
+        /* Seção Estilizada dos Botões de Turma */
+        .secao-turmas { margin-bottom: 30px; }
+        .secao-turmas h3 { font-size: 0.9rem; color: var(--accent); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        
+        /* Grid de botões por ano */
+        .turmas-grid { 
+            display: grid; 
+            grid-template-columns: repeat(4, 1fr); 
+            gap: 12px; 
+            max-width: 800px; 
+            margin-bottom: 20px;
+        }
+        
+        .btn-turma { 
+            background: #ffffff; 
+            color: #4a5568; 
+            border: 1px solid #e2e8f0; 
+            padding: 12px 16px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-weight: 600; 
+            font-size: 0.85rem; 
+            transition: all 0.2s ease-in-out; 
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        .btn-turma span { font-size: 0.7rem; color: #a0aec0; font-weight: normal; transition: 0.2s; }
+        
+        .btn-turma:hover { 
+            border-color: var(--success); 
+            background: #f0fdf4; 
+            color: var(--primary);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .btn-turma:hover span { color: var(--success); }
+        
+        .btn-turma.active { 
+            background: var(--primary); 
+            color: white; 
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(27, 67, 50, 0.25);
+        }
+        .btn-turma.active span { color: #b7e4c7; }
+
+        /* Mensagem caso não existam turmas no ano */
+        .sem-turmas-aviso { font-size: 0.85rem; color: #a0aec0; font-style: italic; padding: 5px 0 15px 0; }
+
+        /* Tabela Limpa */
+        .card { background: white; padding: 25px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; min-width: 400px; }
+        td { padding: 15px 15px; border-bottom: 1px solid #eee; font-size: 0.95rem; color: var(--text); vertical-align: middle; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: #fafafa; }
+        
+        /* Alunos com Ocorrência */
+        tr.aluno-alerta td { background-color: #fff5f5; cursor: pointer; transition: 0.2s; }
+        tr.aluno-alerta:hover td { background-color: #ffebee; }
+        
+        .badge-ocorrencia {
+            background-color: var(--danger);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            margin-left: 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .numero-chamada {
+            font-weight: bold;
+            color: #718096;
+            margin-right: 8px;
+            display: inline-block;
+            width: 25px;
+        }
+        
+        /* Realce de marca-texto */
+        .mark-highlight { background-color: var(--highlight); font-weight: bold; padding: 2px 4px; border-radius: 4px; color: #000; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+
+        /* ================= MODAL DE OCORRÊNCIAS ================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; pointer-events: none;
+            transition: 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
+        
+        .modal-card {
+            background: white; width: 100%; max-width: 550px;
+            border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden; transform: translateY(-30px); transition: 0.3s ease;
+        }
+        .modal-overlay.active .modal-card { transform: translateY(0); }
+
+        .modal-header {
+            background: var(--danger); color: white;
+            padding: 20px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .modal-header h2 { font-size: 1.2rem; display: flex; align-items: center; gap: 10px; }
+        .btn-close-modal { background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; opacity: 0.8; }
+        .btn-close-modal:hover { opacity: 1; }
+
+        .modal-body { padding: 25px; max-height: 400px; overflow-y: auto; }
+        
+        /* Card individual de cada ocorrência */
+        .item-ocorrencia {
+            background: #f8f9fa; border-left: 4px solid var(--danger);
+            padding: 15px; border-radius: 0 8px 8px 0; margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+        }
+        .item-ocorrencia:last-child { margin-bottom: 0; }
+        .item-ocorrencia-header { display: flex; justify-content: space-between; font-size: 0.85rem; color: #718096; margin-bottom: 8px; border-bottom: 1px dashed #e2e8f0; padding-bottom: 5px; }
+        .item-ocorrencia-dados { font-size: 0.95rem; margin-bottom: 6px; }
+        .item-ocorrencia-dados strong { color: var(--primary); }
+        .item-ocorrencia-desc { font-size: 0.9rem; background: #fff; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0; color: #4a5568; margin-top: 8px; font-style: italic; }
+    </style>
+</head>
+<body>
+
+    <div class="wrapper">
+        <aside class="sidebar">
+            <h2>PROFESSOR</h2>
+            <nav>
+                <a href="ocorrencias.html"><i class="fas fa-exclamation-triangle"></i> Ocorrências</a>
+                <a href="turmas.html" class="active"><i class="fas fa-users"></i> Turmas</a>
+                
+                <a href="../index.html" class="btn-sair"><i class="fas fa-sign-out-alt"></i> Sair</a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <div class="header-actions">
+                <h1>Consultar Turmas e Alunos</h1>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" id="inputBusca" placeholder="Selecione uma turma abaixo..." disabled onkeyup="filtrarPorNome()">
+                <i class="fas fa-search"></i>
+            </div>
+
+            <div class="secao-turmas">
+                <h3><i class="fas fa-graduation-cap"></i> 1º Ano Ensino Médio</h3>
+                <div class="turmas-grid" id="grid-ano1"></div>
+
+                <h3><i class="fas fa-graduation-cap"></i> 2º Ano Ensino Médio</h3>
+                <div class="turmas-grid" id="grid-ano2"></div>
+
+                <h3><i class="fas fa-graduation-cap"></i> 3º Ano Ensino Médio</h3>
+                <div class="turmas-grid" id="grid-ano3"></div>
+            </div>
+
+            <div class="card">
+                <table id="tabelaTurmas">
+                    <tbody id="corpoTabela">
+                        <tr id="linhaAviso">
+                            <td class="placeholder-mensagem" style="text-align: center; color: #718096; padding: 40px 20px; font-style: italic; font-size: 0.95rem; border: none;">
+                                <i class="fas fa-arrow-up" style="font-size: 2rem; color: #cbd5e0; margin-bottom: 10px; display: block;"></i>
+                                Selecione uma turma acima para carregar a lista de alunos cadastrados.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal-overlay" id="modalOcorrencias" onclick="fecharModal(event)">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2><i class="fas fa-exclamation-triangle"></i> Histórico de Ocorrências</h2>
+                <button class="btn-close-modal" onclick="alternarModal(false)"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <h3 id="modalNomeAluno" style="margin-bottom: 20px; font-size: 1.1rem; color: var(--text);">Aluno</h3>
+                <div id="modalListaOcorrencias"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let turmaAtiva = "";
+
+        /* ESTRUTURA DINÂMICA COMPLETA ESPERADA DO BANCO DE DADOS:
+           Agora, tanto a lista de turmas por ano, quanto os alunos e suas respectivas ocorrências 
+           devem vir estruturados do seu back-end (via PHP echo, API Fetch, ou variáveis de sessão).
+        */
+        const dadosDoBanco = {
+            "turmas": {
+                "ano1": [
+                    /* Exemplo de dados gerados pelo banco:
+                    { id: "1info", sigla: "1º INFO", curso: "Informática" },
+                    { id: "1adm", sigla: "1º ADM", curso: "Administração" }
+                    */
+                ],
+                "ano2": [],
+                "ano3": []
+            },
+            "alunosPorTurma": {
+                /* Exemplo de dados gerados pelo banco:
+                "1info": [
+                    { 
+                        nome: "ALEX SILVA OLIVEIRA", 
+                        ocorrencias: [
+                            { disciplina: "Matemática", professor: "Prof. Roberto", descricao: "Uso do celular.", data: "12/05/2026" }
+                        ] 
+                    }
+                ]
+                */
+            }
+        };
+
+        // FUNÇÃO QUE RENDERIZA OS BOTÕES DE TURMA VINDO DO BANCO DE DADOS
+        function carregarTurmasDoBanco() {
+            for (let ano in dadosDoBanco.turmas) {
+                const grid = document.getElementById(`grid-${ano}`);
+                if (!grid) continue;
+
+                const turmasDoAno = dadosDoBanco.turmas[ano];
+                grid.innerHTML = ""; // Limpa o grid
+
+                if (turmasDoAno.length === 0) {
+                    grid.innerHTML = `<div class="sem-turmas-aviso">Nenhuma turma cadastrada para este ano.</div>`;
+                    continue;
+                }
+
+                turmasDoAno.forEach(turma => {
+                    grid.innerHTML += `
+                        <button class="btn-turma" onclick="selecionarTurma('${turma.id}', this)">
+                            ${turma.sigla} <span>${turma.curso}</span>
+                        </button>
+                    `;
+                });
+            }
+        }
+
+        function selecionarTurma(siglaTurma, botao) {
+            turmaAtiva = siglaTurma;
+            
+            document.querySelectorAll('.btn-turma').forEach(btn => btn.classList.remove('active'));
+            botao.classList.add('active');
+
+            const inputBusca = document.getElementById('inputBusca');
+            inputBusca.disabled = false;
+            inputBusca.value = "";
+            
+            // Pega o texto principal do botão gerado dinamicamente
+            const nomeDaTurmaCurto = botao.cloneNode(true).querySelector('span').remove() || botao.textContent.split('\n')[0].trim();
+            inputBusca.placeholder = `Pesquisar aluno...`;
+
+            const corpoTabela = document.getElementById('corpoTabela');
+            let listaHtml = "";
+            
+            // Busca os alunos daquela chave de turma específica dentro do objeto vindo do banco
+            let alunosDaSala = dadosDoBanco.alunosPorTurma[siglaTurma] || [];
+            
+            // Organiza por Ordem Alfabética antes de renderizar
+            alunosDaSala.sort((a, b) => a.nome.localeCompare(b.nome));
+            
+            alunosDaSala.forEach((aluno, index) => {
+                const numeroChamada = index + 1;
+                const qtdOcorrencias = aluno.ocorrencias ? aluno.ocorrencias.length : 0;
+                
+                let classeAlerta = '';
+                let badgeOcorrencia = '';
+                let cliqueEvento = '';
+
+                if (qtdOcorrencias > 0) {
+                    classeAlerta = 'class="aluno-alerta"';
+                    cliqueEvento = `onclick="abrirDetalhesOcorrencia('${siglaTurma}', '${aluno.nome}')"`;
+                    
+                    const textoBadge = qtdOcorrencias === 1 ? '1 Ocorrência' : `${qtdOcorrencias} Ocorrências`;
+                    badgeOcorrencia = `<span class="badge-ocorrencia"><i class="fas fa-exclamation-circle"></i> ${textoBadge}</span>`;
+                }
+
+                listaHtml += `
+                    <tr ${classeAlerta} ${cliqueEvento}>
+                        <td class="nome-aluno" data-nome="${aluno.nome}">
+                            <span class="numero-chamada">${numeroChamada}.</span><span class="texto-nome">${aluno.nome}</span>${badgeOcorrencia}
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            corpoTabela.innerHTML = listaHtml || '<tr><td style="text-align:center; color:#888; padding: 30px;">Nenhum aluno cadastrado nesta turma no banco de dados.</td></tr>';
+        }
+
+        function filtrarPorNome() {
+            if (!turmaAtiva) return;
+
+            const filter = document.getElementById('inputBusca').value.toLowerCase();
+            const trs = document.querySelectorAll(`#corpoTabela tr`);
+            
+            trs.forEach(linha => {
+                const td = linha.querySelector('.nome-aluno');
+                if (td) {
+                    const nomeOriginal = td.getAttribute('data-nome'); 
+                    const textoNomeSpan = linha.querySelector('.texto-nome');
+
+                    if (filter === "") {
+                        linha.style.display = ""; 
+                        textoNomeSpan.innerHTML = nomeOriginal;
+                    } 
+                    else if (nomeOriginal.toLowerCase().includes(filter)) {
+                        linha.style.display = ""; 
+                        const regex = new RegExp(`(${filter})`, 'gi');
+                        textoNomeSpan.innerHTML = nomeOriginal.replace(regex, '<span class="mark-highlight">$1</span>');
+                    } 
+                    else {
+                        linha.style.display = "none"; 
+                    }
+                }
+            });
+        }
+
+        // ================= FUNÇÕES DO MODAL =================
+
+        function alternarModal(abrir) {
+            const modal = document.getElementById('modalOcorrencias');
+            if (abrir) modal.classList.add('active');
+            else modal.classList.remove('active');
+        }
+
+        function fecharModal(e) {
+            if (e.target.classList.contains('modal-overlay')) {
+                alternarModal(false);
+            }
+        }
+
+        function abrirDetalhesOcorrencia(siglaTurma, nomeAluno) {
+            const alunos = dadosDoBanco.alunosPorTurma[siglaTurma];
+            if (!alunos) return;
+            
+            const alunoEncontrado = alunos.find(a => a.nome === nomeAluno);
+
+            if (!alunoEncontrado || !alunoEncontrado.ocorrencias || !alunoEncontrado.ocorrencias.length) return;
+
+            document.getElementById('modalNomeAluno').innerText = `Aluno(a): ${alunoEncontrado.nome}`;
+            
+            const containerLista = document.getElementById('modalListaOcorrencias');
+            containerLista.innerHTML = ""; 
+
+            alunoEncontrado.ocorrencias.forEach((oc, index) => {
+                containerLista.innerHTML += `
+                    <div class="item-ocorrencia">
+                        <div class="item-ocorrencia-header">
+                            <span><i class="far fa-calendar-alt"></i> Registro #${index + 1}</span>
+                            <span>${oc.data || ''}</span>
+                        </div>
+                        <div class="item-ocorrencia-dados"><strong>Disciplina:</strong> ${oc.disciplina}</div>
+                        <div class="item-ocorrencia-dados"><strong>Professor:</strong> ${oc.professor}</div>
+                        <div class="item-ocorrencia-desc">"${oc.descricao}"</div>
+                    </div>
+                `;
+            });
+
+            alternarModal(true);
+        }
+
+        // DISPARA A FUNÇÃO DE CARREGAMENTO LOGO APÓS A PÁGINA SER ABERTA
+        window.onload = carregarTurmasDoBanco;
+    </script>
+</body>
+</html>

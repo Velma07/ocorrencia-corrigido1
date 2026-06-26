@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Aluno</title>
+</head>
+<body>
+
+<h1>Aluno 🎓</h1>
+
+<button onclick="logout()">Sair</button>
+
+<h2>Minhas Ocorrências</h2>
+<ul id="lista"></ul>
+
+<script>
+const token = localStorage.getItem("token");
+const userId = localStorage.getItem("userId");
+const nome = localStorage.getItem("nome");
+
+if (!token) {
+    window.location.href = "../login.html";
+}
+
+function carregar() {
+    const url = userId
+        ? `/ocorrencias/aluno/${userId}`
+        : "/ocorrencias";
+
+    fetch(url, {
+        headers: { Authorization: token }
+    })
+    .then(res => res.json())
+    .then(data => {
+        const lista = document.getElementById("lista");
+        lista.innerHTML = "";
+
+        if (!Array.isArray(data)) {
+            lista.innerHTML = `<li>Erro: ${data.erro || 'Falha ao carregar ocorrências'}</li>`;
+            return;
+        }
+
+        data.forEach(o => {
+            const li = document.createElement("li");
+            li.innerText = `${o.id} - ${o.descricao}`;
+            lista.appendChild(li);
+        });
+    })
+    .catch(() => {
+        document.getElementById("lista").innerHTML = '<li>Erro ao conectar com o servidor.</li>';
+    });
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = "../login.html";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (nome) {
+        const title = document.querySelector("h1");
+        if (title) title.innerText = `Aluno 🎓 - ${nome}`;
+    }
+    carregar();
+});
+</script>
+
+</body>
+</html>

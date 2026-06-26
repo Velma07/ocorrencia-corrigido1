@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Admin</title>
+</head>
+<body>
+
+<h1>Admin 👨‍💼</h1>
+
+<button onclick="logout()">Sair</button>
+
+<h2>Cadastrar Aluno</h2>
+
+<input id="nome" placeholder="Nome">
+<input id="sobrenome" placeholder="Sobrenome">
+<input id="email" placeholder="Email">
+<input id="senha" placeholder="Senha">
+
+<button onclick="criarAluno()">Criar</button>
+
+<h2>Lista de Alunos</h2>
+<ul id="listaAlunos"></ul>
+
+<script>
+const token = localStorage.getItem("token");
+const nome = localStorage.getItem("nome");
+
+if (!token) {
+    window.location.href = "../login.html";
+}
+
+function carregarAlunos() {
+    fetch("/alunos", {
+        headers: { Authorization: token }
+    })
+    .then(res => res.json())
+    .then(data => {
+        const lista = document.getElementById("listaAlunos");
+        lista.innerHTML = "";
+
+        if (!Array.isArray(data)) {
+            lista.innerHTML = `<li>Erro: ${data.erro || 'Falha ao carregar alunos'}</li>`;
+            return;
+        }
+
+        data.forEach(a => {
+            const li = document.createElement("li");
+            li.innerHTML = `
+                ${a.id} - ${a.nome} ${a.sobrenome} (${a.email})
+                <button onclick="deletar(${a.id})">Excluir</button>
+            `;
+            lista.appendChild(li);
+        });
+    })
+    .catch(() => {
+        document.getElementById("listaAlunos").innerHTML = '<li>Erro ao conectar com o servidor.</li>';
+    });
+}
+
+function criarAluno() {
+    const nomeInput = document.getElementById("nome").value;
+    const sobrenomeInput = document.getElementById("sobrenome").value;
+    const emailInput = document.getElementById("email").value;
+    const senhaInput = document.getElementById("senha").value;
+
+    fetch("/alunos", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: token
+        },
+        body: JSON.stringify({
+            nome: nomeInput,
+            sobrenome: sobrenomeInput,
+            email: emailInput,
+            senha: senhaInput,
+            id_turma: 1
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.erro) {
+            alert(data.erro);
+            return;
+        }
+
+        document.getElementById("nome").value = "";
+        document.getElementById("sobrenome").value = "";
+        document.getElementById("email").value = "";
+        document.getElementById("senha").value = "";
+        carregarAlunos();
+    })
+    .catch(() => {
+        alert("Erro ao criar aluno.");
+    });
+}
+
+function deletar(id) {
+    fetch(`/alunos/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: token }
+    })
+    .then(() => carregarAlunos())
+    .catch(() => {
+        alert("Erro ao excluir aluno.");
+    });
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = "../login.html";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    if (nome) {
+        const title = document.querySelector("h1");
+        if (title) title.innerText = `Admin 👨‍💼 - ${nome}`;
+    }
+    carregarAlunos();
+});
+</script>
+
+</body>
+</html>

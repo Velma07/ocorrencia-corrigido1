@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login | Sistema</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #064e3b, #10b981);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    width: 300px;
+    text-align: center;
+}
+
+h2 {
+    margin-bottom: 20px;
+}
+
+input, select {
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    background: #047857;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #065f46;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <h2>Login</h2>
+
+    <input type="email" id="email" placeholder="Email">
+    <input type="password" id="senha" placeholder="Senha">
+
+    <button onclick="login()">Entrar</button>
+</div>
+
+<script>
+function login() {
+    const email = document.getElementById("email").value;
+    const senha = document.getElementById("senha").value;
+
+    fetch("/auth/login", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ email, senha })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.token) {
+            localStorage.setItem("token", data.token);
+            localStorage.setItem("tipo", data.usuario.tipo);
+            localStorage.setItem("userId", data.usuario.id);
+            localStorage.setItem("nome", data.usuario.nome);
+
+            if (data.usuario.tipo === "admin") {
+                window.location.href = "TELA ADM/dashboard.html";
+            } else if (data.usuario.tipo === "professor") {
+                window.location.href = "professor/dashboard.html";
+            } else {
+                window.location.href = "aluno/dashboard.html";
+            }
+        } else {
+            alert(data.erro || "Erro no login");
+        }
+    })
+    .catch(() => {
+        alert("Não foi possível conectar ao servidor de login.");
+    });
+}
+</script>
+
+
+</body>
+</html>

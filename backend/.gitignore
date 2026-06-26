@@ -1,0 +1,14 @@
+# node
+node_modules/
+
+# perigoso
+.env
+
+# logs
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# sistemazin
+.DS_Store
+Thumbs.db
