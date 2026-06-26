@@ -1,9 +1,14 @@
 {
   "version": 2,
-
-  "routes": [
-    { "src": "^/$", "dest": "/frontend/index.html" },
-    { "src": "^/(.*\.(js|css|png|jpg|jpeg|svg|ico|html))$", "dest": "/frontend/$1" },
-    { "src": "^/(auth|alunos|professores|turmas|disciplinas|ocorrencias|usuarios)(.*)", "dest": "/api/index.js" }
+  "rewrites": [
+    { "source": "/", "destination": "/frontend/index.html" },
+    { "source": "/auth/:path*", "destination": "/api/index.js" },
+    { "source": "/alunos/:path*", "destination": "/api/index.js" },
+    { "source": "/professores/:path*", "destination": "/api/index.js" },
+    { "source": "/turmas/:path*", "destination": "/api/index.js" },
+    { "source": "/disciplinas/:path*", "destination": "/api/index.js" },
+    { "source": "/ocorrencias/:path*", "destination": "/api/index.js" },
+    { "source": "/usuarios/:path*", "destination": "/api/index.js" },
+    { "source": "/:path*", "destination": "/frontend/:path*" }
   ]
 }
