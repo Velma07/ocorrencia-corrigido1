@@ -9,13 +9,13 @@ router.get("/", verificarToken, ocorrenciaController.listar);
 // 📋 LISTAR OCORRÊNCIAS DE UM ALUNO
 router.get("/aluno/:aluno_id", verificarToken, verificarTipo(["aluno", "professor"]), ocorrenciaController.listarAluno);
 
-// ➕ CRIAR OCORRÊNCIA (SÓ PROFESSOR)
-router.post("/", verificarToken, verificarTipo(["professor"]), ocorrenciaController.criar);
+// ➕ CRIAR OCORRÊNCIA (ADMIN E PROFESSOR)
+router.post("/", verificarToken, verificarTipo(["admin", "professor"]), ocorrenciaController.criar);
 
 // ✏️ ATUALIZAR OCORRÊNCIA
-router.put("/:id", verificarToken, verificarTipo(["professor"]), ocorrenciaController.atualizar);
+router.put("/:id", verificarToken, verificarTipo(["admin", "professor"]), ocorrenciaController.atualizar);
 
 // ❌ DELETAR OCORRÊNCIA
-router.delete("/:id", verificarToken, verificarTipo(["professor"]), ocorrenciaController.deletar);
+router.delete("/:id", verificarToken, verificarTipo(["admin", "professor"]), ocorrenciaController.deletar);
 
 module.exports = router;

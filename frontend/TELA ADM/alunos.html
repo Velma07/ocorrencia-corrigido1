@@ -343,6 +343,9 @@
         let linhaParaAcao = null;
         let turmasCache = [];
         let disciplinasCache = [];
+        let turmaEdicaoId = null;
+        let disciplinaEdicaoId = null;
+        let professorEdicaoId = null;
 
         function mostrarToast(titulo, msg, tipo = 'success') {
             toast.className = tipo === 'success' ? '' : 'delete';
@@ -478,7 +481,14 @@
                     item.className = 'card';
                     item.style.marginBottom = '10px';
                     item.style.padding = '12px 15px';
-                    item.innerHTML = `<strong>${turma.nome}</strong>`;
+                    item.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                            <strong>${turma.nome}</strong>
+                            <div>
+                                <button type="button" onclick="editarTurma(${turma.id}, '${turma.nome.replace(/'/g, "\\'")}')" class="btn-add" style="width:auto; padding:8px 10px; margin-right:8px;">Editar</button>
+                                <button type="button" onclick="excluirTurma(${turma.id})" class="btn-add" style="width:auto; padding:8px 10px; background:#e63946;">Excluir</button>
+                            </div>
+                        </div>`;
                     listaTurmas.appendChild(item);
                 });
             } catch (erro) {
@@ -511,7 +521,14 @@
                     item.className = 'card';
                     item.style.marginBottom = '10px';
                     item.style.padding = '12px 15px';
-                    item.innerHTML = `<strong>${disciplina.descricao}</strong>`;
+                    item.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                            <strong>${disciplina.descricao}</strong>
+                            <div>
+                                <button type="button" onclick="editarDisciplina(${disciplina.id}, '${disciplina.descricao.replace(/'/g, "\\'")}')" class="btn-add" style="width:auto; padding:8px 10px; margin-right:8px;">Editar</button>
+                                <button type="button" onclick="excluirDisciplina(${disciplina.id})" class="btn-add" style="width:auto; padding:8px 10px; background:#e63946;">Excluir</button>
+                            </div>
+                        </div>`;
                     listaDisciplinas.appendChild(item);
                 });
             } catch (erro) {
@@ -542,7 +559,16 @@
                     item.className = 'card';
                     item.style.marginBottom = '10px';
                     item.style.padding = '12px 15px';
-                    item.innerHTML = `<strong>${professor.nome} ${professor.sobrenome}</strong><br><span>${professor.email}</span>`;
+                    item.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+                            <div>
+                                <strong>${professor.nome} ${professor.sobrenome}</strong><br><span>${professor.email}</span>
+                            </div>
+                            <div>
+                                <button type="button" onclick="editarProfessor(${professor.id}, '${professor.nome.replace(/'/g, "\\'")}', '${professor.sobrenome.replace(/'/g, "\\'")}', '${professor.email.replace(/'/g, "\\'")}')" class="btn-add" style="width:auto; padding:8px 10px; margin-right:8px;">Editar</button>
+                                <button type="button" onclick="excluirProfessor(${professor.id})" class="btn-add" style="width:auto; padding:8px 10px; background:#e63946;">Excluir</button>
+                            </div>
+                        </div>`;
                     listaProfessores.appendChild(item);
                 });
             } catch (erro) {
@@ -714,67 +740,169 @@
 
         trocarSecao('alunos');
 
-        formTurma.addEventListener('submit', async (event) => {
-            event.preventDefault();
+        async function excluirTurma(id) {
             try {
-                const resposta = await fetch(apiUrl('/turmas'), {
-                    method: 'POST',
-                    headers: authHeaders(),
-                    body: JSON.stringify({ nome: nomeTurma.value.trim() })
+                const resposta = await fetch(apiUrl(`/turmas/${id}`), {
+                    method: 'DELETE',
+                    headers: authHeaders()
                 });
                 const dados = await resposta.json();
                 if (!resposta.ok) {
-                    throw new Error(dados.erro || 'Erro ao criar turma');
+                    throw new Error(dados.erro || 'Erro ao excluir turma');
+                }
+                await carregarTurmas();
+                mostrarToast('Excluído!', 'Turma removida com sucesso.', 'error');
+            } catch (erro) {
+                mostrarToast('Erro', erro.message, 'error');
+            }
+        }
+
+        function editarTurma(id, nome) {
+            turmaEdicaoId = id;
+            nomeTurma.value = nome;
+            document.querySelector('#formTurma button').textContent = 'Atualizar';
+        }
+
+        formTurma.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            try {
+                const resposta = turmaEdicaoId
+                    ? await fetch(apiUrl(`/turmas/${turmaEdicaoId}`), {
+                        method: 'PUT',
+                        headers: authHeaders(),
+                        body: JSON.stringify({ nome: nomeTurma.value.trim() })
+                    })
+                    : await fetch(apiUrl('/turmas'), {
+                        method: 'POST',
+                        headers: authHeaders(),
+                        body: JSON.stringify({ nome: nomeTurma.value.trim() })
+                    });
+                const dados = await resposta.json();
+                if (!resposta.ok) {
+                    throw new Error(dados.erro || 'Erro ao salvar turma');
                 }
                 nomeTurma.value = '';
+                turmaEdicaoId = null;
+                document.querySelector('#formTurma button').textContent = 'Salvar';
                 await carregarTurmas();
-                mostrarToast('Sucesso!', 'Turma cadastrada com sucesso.');
+                mostrarToast('Sucesso!', turmaEdicaoId ? 'Turma atualizada com sucesso.' : 'Turma cadastrada com sucesso.');
             } catch (erro) {
                 mostrarToast('Erro', erro.message, 'error');
             }
         });
+
+        async function excluirDisciplina(id) {
+            try {
+                const resposta = await fetch(apiUrl(`/disciplinas/${id}`), {
+                    method: 'DELETE',
+                    headers: authHeaders()
+                });
+                const dados = await resposta.json();
+                if (!resposta.ok) {
+                    throw new Error(dados.erro || 'Erro ao excluir disciplina');
+                }
+                await carregarDisciplinas();
+                mostrarToast('Excluído!', 'Disciplina removida com sucesso.', 'error');
+            } catch (erro) {
+                mostrarToast('Erro', erro.message, 'error');
+            }
+        }
+
+        function editarDisciplina(id, descricao) {
+            disciplinaEdicaoId = id;
+            descricaoDisciplina.value = descricao;
+            document.querySelector('#formDisciplina button').textContent = 'Atualizar';
+        }
 
         formDisciplina.addEventListener('submit', async (event) => {
             event.preventDefault();
             try {
-                const resposta = await fetch(apiUrl('/disciplinas'), {
-                    method: 'POST',
-                    headers: authHeaders(),
-                    body: JSON.stringify({ descricao: descricaoDisciplina.value.trim() })
-                });
+                const resposta = disciplinaEdicaoId
+                    ? await fetch(apiUrl(`/disciplinas/${disciplinaEdicaoId}`), {
+                        method: 'PUT',
+                        headers: authHeaders(),
+                        body: JSON.stringify({ descricao: descricaoDisciplina.value.trim() })
+                    })
+                    : await fetch(apiUrl('/disciplinas'), {
+                        method: 'POST',
+                        headers: authHeaders(),
+                        body: JSON.stringify({ descricao: descricaoDisciplina.value.trim() })
+                    });
                 const dados = await resposta.json();
                 if (!resposta.ok) {
-                    throw new Error(dados.erro || 'Erro ao criar disciplina');
+                    throw new Error(dados.erro || 'Erro ao salvar disciplina');
                 }
                 descricaoDisciplina.value = '';
+                disciplinaEdicaoId = null;
+                document.querySelector('#formDisciplina button').textContent = 'Salvar';
                 await carregarDisciplinas();
-                mostrarToast('Sucesso!', 'Disciplina cadastrada com sucesso.');
+                mostrarToast('Sucesso!', disciplinaEdicaoId ? 'Disciplina atualizada com sucesso.' : 'Disciplina cadastrada com sucesso.');
             } catch (erro) {
                 mostrarToast('Erro', erro.message, 'error');
             }
         });
 
-        formProfessor.addEventListener('submit', async (event) => {
-            event.preventDefault();
+        async function excluirProfessor(id) {
             try {
-                const resposta = await fetch(apiUrl('/professores'), {
-                    method: 'POST',
-                    headers: authHeaders(),
-                    body: JSON.stringify({
-                        nome: document.getElementById('nomeProfessor').value.trim(),
-                        sobrenome: document.getElementById('sobrenomeProfessor').value.trim(),
-                        email: document.getElementById('emailProfessor').value.trim(),
-                        senha: document.getElementById('senhaProfessor').value,
-                        id_disciplina: selectDisciplinaProfessor.value || null
-                    })
+                const resposta = await fetch(apiUrl(`/professores/${id}`), {
+                    method: 'DELETE',
+                    headers: authHeaders()
                 });
                 const dados = await resposta.json();
                 if (!resposta.ok) {
-                    throw new Error(dados.erro || 'Erro ao criar professor');
+                    throw new Error(dados.erro || 'Erro ao excluir professor');
+                }
+                await carregarProfessores();
+                mostrarToast('Excluído!', 'Professor removido com sucesso.', 'error');
+            } catch (erro) {
+                mostrarToast('Erro', erro.message, 'error');
+            }
+        }
+
+        function editarProfessor(id, nome, sobrenome, email) {
+            professorEdicaoId = id;
+            document.getElementById('nomeProfessor').value = nome;
+            document.getElementById('sobrenomeProfessor').value = sobrenome;
+            document.getElementById('emailProfessor').value = email;
+            document.getElementById('senhaProfessor').required = false;
+            document.querySelector('#formProfessor button').textContent = 'Atualizar';
+        }
+
+        formProfessor.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            try {
+                const body = {
+                    nome: document.getElementById('nomeProfessor').value.trim(),
+                    sobrenome: document.getElementById('sobrenomeProfessor').value.trim(),
+                    email: document.getElementById('emailProfessor').value.trim(),
+                    id_disciplina: selectDisciplinaProfessor.value || null
+                };
+
+                if (!professorEdicaoId) {
+                    body.senha = document.getElementById('senhaProfessor').value;
+                }
+
+                const resposta = professorEdicaoId
+                    ? await fetch(apiUrl(`/professores/${professorEdicaoId}`), {
+                        method: 'PUT',
+                        headers: authHeaders(),
+                        body: JSON.stringify(body)
+                    })
+                    : await fetch(apiUrl('/professores'), {
+                        method: 'POST',
+                        headers: authHeaders(),
+                        body: JSON.stringify(body)
+                    });
+                const dados = await resposta.json();
+                if (!resposta.ok) {
+                    throw new Error(dados.erro || 'Erro ao salvar professor');
                 }
                 formProfessor.reset();
+                document.getElementById('senhaProfessor').required = true;
+                professorEdicaoId = null;
+                document.querySelector('#formProfessor button').textContent = 'Salvar';
                 await carregarProfessores();
-                mostrarToast('Sucesso!', 'Professor cadastrado com sucesso.');
+                mostrarToast('Sucesso!', professorEdicaoId ? 'Professor atualizado com sucesso.' : 'Professor cadastrado com sucesso.');
             } catch (erro) {
                 mostrarToast('Erro', erro.message, 'error');
             }
