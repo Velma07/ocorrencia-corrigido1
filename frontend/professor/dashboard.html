@@ -256,7 +256,21 @@ function carregar() {
 
         data.forEach(o => {
             const li = document.createElement("li");
-            li.innerText = `${o.id} - ${o.descricao}`;
+            const alunoNome = o.aluno_nome && o.aluno_sobrenome 
+                ? `${o.aluno_nome} ${o.aluno_sobrenome}` 
+                : 'Aluno não encontrado';
+            const professorNome = o.professor_nome && o.professor_sobrenome 
+                ? `${o.professor_nome} ${o.professor_sobrenome}` 
+                : 'Professor não encontrado';
+            const dataOcorrencia = o.data_ocorrencia 
+                ? new Date(o.data_ocorrencia).toLocaleDateString('pt-BR') 
+                : '';
+            li.innerHTML = `
+                <div>
+                    <strong>#${o.id}</strong> - ${o.descricao}
+                    <br><small>Aluno: ${alunoNome} | Professor: ${professorNome} | Data: ${dataOcorrencia}</small>
+                </div>
+            `;
             lista.appendChild(li);
         });
     })

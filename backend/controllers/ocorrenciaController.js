@@ -2,7 +2,24 @@ const db = require("../config/db");
 
 // 🔍 LISTAR TODAS AS OCORRÊNCIAS
 exports.listar = (req, res) => {
-    db.query("SELECT * FROM ocorrencias", (err, result) => {
+    const sql = `
+        SELECT 
+            o.id,
+            o.descricao,
+            o.data_ocorrencia,
+            o.criada_em,
+            o.aluno_id,
+            a.nome AS aluno_nome,
+            a.sobrenome AS aluno_sobrenome,
+            o.professor_id,
+            p.nome AS professor_nome,
+            p.sobrenome AS professor_sobrenome
+        FROM ocorrencias o
+        INNER JOIN aluno a ON o.aluno_id = a.id
+        INNER JOIN professor p ON o.professor_id = p.id
+        ORDER BY o.data_ocorrencia DESC
+    `;
+    db.query(sql, (err, result) => {
         if (err) return res.status(500).json(err);
         res.json(result);
     });

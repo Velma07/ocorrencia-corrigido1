@@ -598,7 +598,35 @@
                     item.className = 'card';
                     item.style.marginBottom = '10px';
                     item.style.padding = '12px 15px';
-                    item.innerHTML = `<strong>${ocorrencia.descricao}</strong><br><span>${new Date(ocorrencia.data_ocorrencia || ocorrencia.criada_em).toLocaleString('pt-BR')}</span>`;
+                    const alunoNome = ocorrencia.aluno_nome && ocorrencia.aluno_sobrenome 
+                        ? `${ocorrencia.aluno_nome} ${ocorrencia.aluno_sobrenome}` 
+                        : 'Aluno não encontrado';
+                    const professorNome = ocorrencia.professor_nome && ocorrencia.professor_sobrenome 
+                        ? `${ocorrencia.professor_nome} ${ocorrencia.professor_sobrenome}` 
+                        : 'Professor não encontrado';
+                    const dataOcorrencia = ocorrencia.data_ocorrencia || ocorrencia.criada_em;
+                    const dataFormatada = dataOcorrencia ? new Date(dataOcorrencia).toLocaleString('pt-BR') : '';
+                    item.innerHTML = `
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 15px;">
+                            <div style="flex: 1;">
+                                <strong style="color: #1b4332;">${ocorrencia.descricao}</strong>
+                                <div style="margin-top: 8px; font-size: 0.85rem; color: #666;">
+                                    <span style="display: flex; align-items: center; gap: 5px; margin-bottom: 3px;">
+                                        <i class="fas fa-user-graduate" style="color: #2d6a4f;"></i>
+                                        <strong>Aluno:</strong> ${alunoNome}
+                                    </span>
+                                    <span style="display: flex; align-items: center; gap: 5px; margin-bottom: 3px;">
+                                        <i class="fas fa-chalkboard-teacher" style="color: #2d6a4f;"></i>
+                                        <strong>Professor:</strong> ${professorNome}
+                                    </span>
+                                    <span style="display: flex; align-items: center; gap: 5px;">
+                                        <i class="fas fa-calendar" style="color: #2d6a4f;"></i>
+                                        <strong>Data:</strong> ${dataFormatada}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `;
                     listaOcorrencias.appendChild(item);
                 });
             } catch (erro) {
