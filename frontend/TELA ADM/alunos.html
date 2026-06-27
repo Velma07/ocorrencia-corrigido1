@@ -315,7 +315,7 @@
         const containerGrupos = document.getElementById('containerGruposTurmas');
         const msgVazio = document.getElementById('msgVazio');
         const menuLinks = document.querySelectorAll('.sidebar nav a[data-section]');
-        const sections = document.querySelectorAll('main .main-content > div[id^="section-"]');
+        const sections = document.querySelectorAll('.main-content > div[id^="section-"]');
         const formTurma = document.getElementById('formTurma');
         const nomeTurma = document.getElementById('nomeTurma');
         const listaTurmas = document.getElementById('listaTurmas');
@@ -679,9 +679,12 @@
         menuLinks.forEach((link) => {
             link.addEventListener('click', (event) => {
                 event.preventDefault();
-                trocarSecao(link.dataset.section);
+                event.stopPropagation();
+                trocarSecao(link.getAttribute('data-section'));
             });
         });
+
+        trocarSecao('alunos');
 
         formTurma.addEventListener('submit', async (event) => {
             event.preventDefault();
