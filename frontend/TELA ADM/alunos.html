@@ -296,6 +296,43 @@
         </div>
     </div>
 
+    <div class="modal-overlay" id="modalDeleteOcorrencia">
+        <div class="modal-card">
+            <i class="fas fa-exclamation-circle" style="font-size: 3rem; color: var(--danger); margin-bottom: 15px;"></i>
+            <h2>Excluir Ocorrência?</h2>
+            <p style="color: #666; margin-bottom: 20px;">Você não poderá reverter esta ação!</p>
+            <div class="form-buttons">
+                <button class="btn-cancel" onclick="fecharModalDeleteOcorrencia()">Cancelar</button>
+                <button class="btn-danger-confirm" id="btnConfirmDeleteOcorrencia">Sim, Excluir</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="modalEditarOcorrencia">
+        <div class="modal-card" style="width: 600px;">
+            <h2 style="color: var(--primary); margin-bottom: 20px;">Editar Ocorrência</h2>
+            <form id="formEditarOcorrencia">
+                <input type="hidden" id="editOcorrenciaId">
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label>Descrição</label>
+                    <textarea id="editDescricaoOcorrencia" rows="4" required style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;"></textarea>
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label>Aluno</label>
+                    <select id="editSelectAlunoOcorrencia" required style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;"></select>
+                </div>
+                <div class="form-group" style="margin-bottom: 15px;">
+                    <label>Professor</label>
+                    <select id="editSelectProfessorOcorrencia" required style="padding: 10px; border: 1px solid #ddd; border-radius: 6px; width: 100%;"></select>
+                </div>
+                <div class="form-buttons">
+                    <button type="button" class="btn-cancel" onclick="fecharModalEditarOcorrencia()">Cancelar</button>
+                    <button type="submit" class="btn-save" style="background: var(--primary); color: white; border: none; padding: 12px; border-radius: 6px; cursor: pointer; flex: 1; font-weight: bold;">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         const API_BASE_URL = window.API_BASE_URL || "https://ocorrencia-corrigido1.onrender.com";
         const token = localStorage.getItem('token');
@@ -339,8 +376,16 @@
         const selectProfessorOcorrencia = document.getElementById('selectProfessorOcorrencia');
         const descricaoOcorrencia = document.getElementById('descricaoOcorrencia');
         const listaOcorrencias = document.getElementById('listaOcorrencias');
+        const modalDeleteOcorrencia = document.getElementById('modalDeleteOcorrencia');
+        const modalEditarOcorrencia = document.getElementById('modalEditarOcorrencia');
+        const formEditarOcorrencia = document.getElementById('formEditarOcorrencia');
+        const editOcorrenciaId = document.getElementById('editOcorrenciaId');
+        const editDescricaoOcorrencia = document.getElementById('editDescricaoOcorrencia');
+        const editSelectAlunoOcorrencia = document.getElementById('editSelectAlunoOcorrencia');
+        const editSelectProfessorOcorrencia = document.getElementById('editSelectProfessorOcorrencia');
 
         let linhaParaAcao = null;
+        let ocorrenciaDeleteId = null;
         let turmasCache = [];
         let disciplinasCache = [];
         let turmaEdicaoId = null;
@@ -624,6 +669,14 @@
                                         <strong>Data:</strong> ${dataFormatada}
                                     </span>
                                 </div>
+                            </div>
+                            <div style="display: flex; gap: 10px; flex-shrink: 0;">
+                                <button onclick="editarOcorrencia(${ocorrencia.id}, '${ocorrencia.descricao.replace(/'/g, "\\'")}', ${ocorrencia.aluno_id}, ${ocorrencia.professor_id})" style="background: #f39c12; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s;" title="Editar">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="confirmarExclusaoOcorrencia(${ocorrencia.id})" style="background: #e63946; color: white; border: none; padding: 8px 12px; border-radius: 6px; cursor: pointer; transition: 0.2s;" title="Excluir">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         </div>
                     `;
@@ -955,6 +1008,74 @@
                 formOcorrencia.reset();
                 await carregarOcorrencias();
                 mostrarToast('Sucesso!', 'Ocorrência registrada com sucesso.');
+            } catch (erro) {
+                mostrarToast('Erro', erro.message, 'error');
+            }
+        });
+
+        // Funções para gerenciar ocorrências (editar e excluir)
+        function confirmarExclusaoOcorrencia(id) {
+            ocorrenciaDeleteId = id;
+            modalDeleteOcorrencia.style.display = 'flex';
+        }
+
+        function fecharModalDeleteOcorrencia() {
+            modalDeleteOcorrencia.style.display = 'none';
+            ocorrenciaDeleteId = null;
+        }
+
+        document.getElementById('btnConfirmDeleteOcorrencia').onclick = async function() {
+            if (ocorrenciaDeleteId) {
+                try {
+                    const resposta = await fetch(apiUrl(`/ocorrencias/${ocorrenciaDeleteId}`), {
+                        method: 'DELETE',
+                        headers: authHeaders()
+                    });
+                    const dados = await resposta.json();
+                    if (!resposta.ok) {
+                        throw new Error(dados.erro || 'Erro ao excluir ocorrência');
+                    }
+                    fecharModalDeleteOcorrencia();
+                    mostrarToast('Excluído!', 'Ocorrência removida com sucesso.', 'error');
+                    await carregarOcorrencias();
+                } catch (erro) {
+                    mostrarToast('Erro', erro.message, 'error');
+                }
+            }
+        };
+
+        function fecharModalEditarOcorrencia() {
+            modalEditarOcorrencia.style.display = 'none';
+        }
+
+        function editarOcorrencia(id, descricao, alunoId, professorId) {
+            editOcorrenciaId.value = id;
+            editDescricaoOcorrencia.value = descricao;
+            editSelectAlunoOcorrencia.value = alunoId;
+            editSelectProfessorOcorrencia.value = professorId;
+            modalEditarOcorrencia.style.display = 'flex';
+        }
+
+        formEditarOcorrencia.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            try {
+                const id = editOcorrenciaId.value;
+                const resposta = await fetch(apiUrl(`/ocorrencias/${id}`), {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    body: JSON.stringify({
+                        descricao: editDescricaoOcorrencia.value.trim(),
+                        aluno_id: editSelectAlunoOcorrencia.value,
+                        professor_id: editSelectProfessorOcorrencia.value
+                    })
+                });
+                const dados = await resposta.json();
+                if (!resposta.ok) {
+                    throw new Error(dados.erro || 'Erro ao atualizar ocorrência');
+                }
+                fecharModalEditarOcorrencia();
+                await carregarOcorrencias();
+                mostrarToast('Atualizado!', 'Ocorrência atualizada com sucesso.');
             } catch (erro) {
                 mostrarToast('Erro', erro.message, 'error');
             }
