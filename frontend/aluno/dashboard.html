@@ -89,6 +89,14 @@ li{background:white;padding:18px;border-radius:12px;margin-bottom:12px;box-shado
     </div>
 
     <div class="card">
+        <h2>Registrar Ocorrência</h2>
+        <form id="formOcorrencia" onsubmit="criarOcorrencia(event)">
+            <textarea id="descricaoOcorrencia" rows="4" style="width:100%; padding:12px; border-radius:10px; border:1px solid #d1d5db; margin-bottom:12px; resize:vertical;" placeholder="Descreva a ocorrência..."></textarea>
+            <button type="submit" class="btn" style="margin-top:0;">Salvar ocorrência</button>
+        </form>
+    </div>
+
+    <div class="card">
         <h2>Minhas Ocorrências</h2>
         <ul id="lista"></ul>
     </div>
@@ -115,7 +123,7 @@ function carregar() {
         : apiUrl("/ocorrencias");
 
     fetch(url, {
-        headers: { Authorization: token }
+        headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => res.json())
     .then(data => {
@@ -135,6 +143,42 @@ function carregar() {
     })
     .catch(() => {
         document.getElementById("lista").innerHTML = '<li>Erro ao conectar com o servidor.</li>';
+    });
+}
+
+function criarOcorrencia(event) {
+    event.preventDefault();
+
+    const descricao = document.getElementById("descricaoOcorrencia").value.trim();
+
+    if (!descricao) {
+        alert("Descreva a ocorrência antes de salvar.");
+        return;
+    }
+
+    fetch(apiUrl("/ocorrencias"), {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+            descricao,
+            aluno_id: userId
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.erro) {
+            alert(data.erro);
+            return;
+        }
+
+        document.getElementById("descricaoOcorrencia").value = "";
+        carregar();
+    })
+    .catch(() => {
+        alert("Erro ao salvar ocorrência.");
     });
 }
 

@@ -27,7 +27,7 @@ exports.listarAluno = (req, res) => {
 };
 
 // ➕ CRIAR OCORRÊNCIA (SÓ PROFESSOR)
-exports.criar = (req, res) => {
+exports.criar = async (req, res) => {
     const { descricao, aluno_id, professor_id } = req.body;
 
     if (!descricao || !aluno_id || !professor_id) {
@@ -36,15 +36,15 @@ exports.criar = (req, res) => {
         });
     }
 
-    const sql = `
-        INSERT INTO ocorrencias (descricao, aluno_id, professor_id, data_ocorrencia, criada_em)
-        VALUES (?, ?, ?, NOW(), NOW())
-    `;
-
-    db.query(sql, [descricao, aluno_id, professor_id], (err) => {
-        if (err) return res.status(500).json(err);
+    try {
+        await db.query(
+            "INSERT INTO ocorrencias (descricao, aluno_id, professor_id, data_ocorrencia, criada_em) VALUES ($1, $2, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)",
+            [descricao, aluno_id, professor_id]
+        );
         res.json({ mensagem: "Ocorrência criada com sucesso!" });
-    });
+    } catch (err) {
+        res.status(500).json({ erro: "Erro ao criar ocorrência", detalhes: err.message });
+    }
 };
 
 // ✏️ ATUALIZAR OCORRÊNCIA

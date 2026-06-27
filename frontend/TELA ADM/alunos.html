@@ -228,6 +228,15 @@
             <div id="section-ocorrencias" style="display:none;">
                 <h1>Gerenciar Ocorrências</h1>
                 <div class="card">
+                    <h3>Registrar ocorrência para aluno</h3>
+                    <form id="formOcorrencia" class="form-grid" style="margin-top: 12px;">
+                        <select id="selectAlunoOcorrencia" required></select>
+                        <select id="selectProfessorOcorrencia" required></select>
+                        <textarea id="descricaoOcorrencia" rows="4" placeholder="Descreva a ocorrência disciplinar" required style="grid-column: 1 / -1; padding: 10px; border: 1px solid #ddd; border-radius: 6px;"></textarea>
+                        <button type="submit" class="btn-add" style="grid-column: 1 / -1;">Salvar ocorrência</button>
+                    </form>
+                </div>
+                <div class="card">
                     <h3>Ocorrências registradas</h3>
                     <div id="listaOcorrencias" style="margin-top: 15px;"></div>
                 </div>
@@ -325,6 +334,10 @@
         const formProfessor = document.getElementById('formProfessor');
         const listaProfessores = document.getElementById('listaProfessores');
         const selectDisciplinaProfessor = document.getElementById('selectDisciplinaProfessor');
+        const formOcorrencia = document.getElementById('formOcorrencia');
+        const selectAlunoOcorrencia = document.getElementById('selectAlunoOcorrencia');
+        const selectProfessorOcorrencia = document.getElementById('selectProfessorOcorrencia');
+        const descricaoOcorrencia = document.getElementById('descricaoOcorrencia');
         const listaOcorrencias = document.getElementById('listaOcorrencias');
 
         let linhaParaAcao = null;
@@ -518,7 +531,13 @@
                 }
 
                 listaProfessores.innerHTML = '';
+                selectProfessorOcorrencia.innerHTML = '<option value="">Selecione um professor...</option>';
                 dados.forEach((professor) => {
+                    const option = document.createElement('option');
+                    option.value = professor.id;
+                    option.textContent = `${professor.nome} ${professor.sobrenome}`;
+                    selectProfessorOcorrencia.appendChild(option);
+
                     const item = document.createElement('div');
                     item.className = 'card';
                     item.style.marginBottom = '10px';
@@ -572,7 +591,16 @@
                     throw new Error(dados.erro || 'Erro ao carregar alunos');
                 }
 
-                renderizarAlunos(Array.isArray(dados) ? dados : []);
+                const alunos = Array.isArray(dados) ? dados : [];
+                selectAlunoOcorrencia.innerHTML = '<option value="">Selecione um aluno...</option>';
+                alunos.forEach((aluno) => {
+                    const option = document.createElement('option');
+                    option.value = aluno.id;
+                    option.textContent = `${aluno.nome} ${aluno.sobrenome}`;
+                    selectAlunoOcorrencia.appendChild(option);
+                });
+
+                renderizarAlunos(alunos);
             } catch (erro) {
                 mostrarToast('Erro', erro.message, 'error');
             }
@@ -747,6 +775,30 @@
                 formProfessor.reset();
                 await carregarProfessores();
                 mostrarToast('Sucesso!', 'Professor cadastrado com sucesso.');
+            } catch (erro) {
+                mostrarToast('Erro', erro.message, 'error');
+            }
+        });
+
+        formOcorrencia.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            try {
+                const resposta = await fetch(apiUrl('/ocorrencias'), {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify({
+                        descricao: descricaoOcorrencia.value.trim(),
+                        aluno_id: selectAlunoOcorrencia.value,
+                        professor_id: selectProfessorOcorrencia.value
+                    })
+                });
+                const dados = await resposta.json();
+                if (!resposta.ok) {
+                    throw new Error(dados.erro || 'Erro ao registrar ocorrência');
+                }
+                formOcorrencia.reset();
+                await carregarOcorrencias();
+                mostrarToast('Sucesso!', 'Ocorrência registrada com sucesso.');
             } catch (erro) {
                 mostrarToast('Erro', erro.message, 'error');
             }
